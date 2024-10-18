@@ -3,6 +3,7 @@
 import { registerApp } from '@/net/auth_api_client'
 import { listConversations } from '@/net/mastodon_api'
 import { useAuth } from '@/stores/auth'
+import Board from '@/components/Board.vue'
 
 const authStore = useAuth();
 
@@ -23,6 +24,7 @@ const onListInbox = async () => {
 <template>
   <main>
     <h1>ActivityGo</h1>
+    <Board :size="19" />
     <div>
       <button  @click="onCreateApplication">Create application</button>
       <button @click="onAuthorise">Authorise</button>
@@ -30,3 +32,5 @@ const onListInbox = async () => {
     </div>
   </main>
 </template>
+
+
