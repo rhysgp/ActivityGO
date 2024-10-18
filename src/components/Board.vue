@@ -15,6 +15,8 @@ interface Sizes {
   readonly vBorder: Number;
 }
 
+enum Colour { White = 'white', Black = 'black' }
+
 const props = defineProps<BoardProps>()
 
 const canvasRef = ref<HTMLCanvasElement | null>(null);
@@ -76,7 +78,7 @@ const drawBoard = () => {
   }
 };
 
-const drawStone = (gridX: Number, gridY: Number) => {
+const drawStone = (gridX: Number, gridY: Number, colour: Colour) => {
   const canvas = canvasRef.value;
   if (!canvas) return;
   const ctx = canvas.getContext('2d');
@@ -88,8 +90,7 @@ const drawStone = (gridX: Number, gridY: Number) => {
 
   ctx.beginPath();
   ctx.arc(x, y, Math.round(hGap / 2 - 1), 0, 2 * Math.PI);
-  // ctx.fillStyle = '#fffff0';
-  ctx.fillStyle = '#222222';
+  ctx.fillStyle = colour == Colour.Black ? '#222222' : '#fffff0';
   ctx.fill();
 
 };
@@ -98,26 +99,26 @@ onMounted(() => {
   console.log("HERE");
   drawBoard();
 
-  drawStone(0, 0);
-  drawStone(0, 1);
-  drawStone(1, 1);
-  drawStone(2, 2);
-  drawStone(3, 3);
-  drawStone(4, 4);
-  drawStone(5, 5);
-  drawStone(6, 6);
-  drawStone(7, 7);
-  drawStone(8, 8);
-  drawStone(9, 9);
-  drawStone(10, 10);
-  drawStone(11, 11);
-  drawStone(12, 12);
-  drawStone(13, 13);
-  drawStone(14, 14);
-  drawStone(15, 15);
-  drawStone(16, 16);
-  drawStone(17, 17);
-  drawStone(18, 18);
+  drawStone(0, 0, Colour.White);
+  drawStone(0, 1, Colour.Black);
+  drawStone(1, 1, Colour.White);
+  drawStone(2, 2, Colour.White);
+  drawStone(3, 3, Colour.Black);
+  drawStone(4, 4, Colour.White);
+  drawStone(5, 5, Colour.Black);
+  drawStone(6, 6, Colour.White);
+  drawStone(7, 7, Colour.Black);
+  drawStone(8, 8, Colour.White);
+  drawStone(9, 9, Colour.White);
+  drawStone(10, 10, Colour.Black);
+  drawStone(11, 11, Colour.White);
+  drawStone(12, 12, Colour.White);
+  drawStone(13, 13, Colour.White);
+  drawStone(14, 14, Colour.Black);
+  drawStone(15, 15, Colour.White);
+  drawStone(16, 16, Colour.Black);
+  drawStone(17, 17, Colour.White);
+  drawStone(18, 18, Colour.White);
 });
 
 </script>
