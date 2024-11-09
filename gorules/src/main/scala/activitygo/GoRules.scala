@@ -53,7 +53,7 @@ object GoRules:
       case _ => false
     }
 
-  private def isEmpty(state: GoState, x: Int, y: Int) = state.board(x)(y) == Empty
+  private def isEmpty(state: GoState, x: Int, y: Int) = state.at(IntersectionPoint(x, y)) == Empty
 
 
   /**
@@ -61,10 +61,10 @@ object GoRules:
    * They are always returned as top, right, bottom, left.
    */
   private def adjacentStates(state: GoState, point: IntersectionPoint): AdjacentStates =
-    val top = if point.y == 0 then OutsideBoard else state.board(point.x)(point.y - 1)
-    val right = if point.x == state.board.length - 1 then OutsideBoard else state.board(point.x + 1)(point.y)
-    val bottom = if point.y == state.board.length - 1 then OutsideBoard else state.board(point.x)(point.y + 1)
-    val left = if point.x == 0 then OutsideBoard else state.board(point.x - 1)(point.y)
+    val top = if point.y == 0 then OutsideBoard else state.at(point.copy(y = point.y - 1))
+    val right = if point.x == state.board.length - 1 then OutsideBoard else state.at(point.copy(x = point.x + 1))
+    val bottom = if point.y == state.board.length - 1 then OutsideBoard else state.at(point.copy(y = point.y + 1))
+    val left = if point.x == 0 then OutsideBoard else state.at(point.copy(x = point.x - 1))
     AdjacentStates(IntersectionPoint(point.x, point.y), top, right, bottom, left)
   end adjacentStates
 
@@ -73,29 +73,26 @@ object GoRules:
    * Find the group the play would be a part of. The play cannot be a pass.
    * That space must be empty.
    */
-  def findGroup(state: GoState, play: StonePlay): List[StonePlay] =
+  def findGroup(state: GoState, play: StonePlay): (GoState, List[StonePlay]) =
     if play.isPass then throw IllegalArgumentException("The play cannot be a pass")
     if state.at(play.intersection) != Empty then throw IllegalArgumentException("The intersection must be empty")
 
     val newState = state.play(play)
 
     // collect the stones linked to that space that are of the same colour:
-    val intersectionsInGroup = mutable.Set[StonePlay](play)
-    var done = false
-    while (!done)
-      val startCount = intersectionsInGroup.size
-      adjacentStates(newState, play.intersection)
+    val intersectionsInGroup = mutable.Set[StonePlay]()
+    val toDo = mutable.Stack[StonePlay](play)
+    while (toDo.nonEmpty)
+      val p = toDo.pop()
+      intersectionsInGroup.addOne(p)
+      adjacentStates(newState, p.intersection)
         .toList
         .filter(_.toIntersectionState == play.toIntersectionState)
-        .foreach(intersectionsInGroup.addOne)
-      val endCount = intersectionsInGroup.size
-      done = endCount == startCount
+        .filterNot(p => intersectionsInGroup.contains(p))
+        .foreach(toDo.addOne)
     end while
 
-    println(s"Size in group: ${intersectionsInGroup.size}")
-
-    intersectionsInGroup.toList
-
+    (newState, intersectionsInGroup.toList)
   end findGroup
 
 
@@ -105,19 +102,17 @@ object GoRules:
    * If there are no adjacent spaces that are empty, that's suicide!
    */
   def isSuicide(state: GoState, play: StonePlay): Boolean =
-    val intersectionsInGroup = findGroup(state, play)
-
-    println(s"Size in group: ${intersectionsInGroup.size}")
-
-    intersectionsInGroup
-      .map(sp => adjacentStates(state, sp.intersection))
+    val (newState, intersectionsInGroup) = findGroup(state, play)
+    !intersectionsInGroup
+      .map(sp => adjacentStates(newState, sp.intersection))
       .exists(_.hasAdjacentEmptyIntersections)
-
   end isSuicide
 
 end GoRules
 
-class InvalidPlayException extends Exception()
+class InvalidPlayException(msg: String) extends Exception(msg) {
+  def this() = this("Invalid play")
+}
 
 case class AdjacentStates(centre: IntersectionPoint, top: IntersectionState, right: IntersectionState, bottom: IntersectionState, left: IntersectionState) {
   def toList: List[StonePlay] =

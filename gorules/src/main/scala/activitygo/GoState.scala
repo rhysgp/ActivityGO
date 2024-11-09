@@ -19,7 +19,7 @@ case class GoState(
   }
 
   def at(intersectionPoint: IntersectionPoint): IntersectionState =
-    board(intersectionPoint.x)(intersectionPoint.y)
+    board(intersectionPoint.y)(intersectionPoint.x)
   end at
 
   override def toString: String =
@@ -48,7 +48,7 @@ object GoState:
       Seq.empty
     )
 
-  def fromString(s: String): GoState =
+  def fromString(s: String, plays: List[Play] = Nil): GoState =
     val lines = s.split("\n").toList
     val size = lines.length
 
@@ -64,7 +64,7 @@ object GoState:
         }.toArray
       ).toArray
 
-    GoState(state, (CountOfBlack(0), CountOfWhite(0)), Seq.empty)
+    GoState(state, (CountOfBlack(0), CountOfWhite(0)), plays)
   end fromString
 
 end GoState
@@ -99,7 +99,7 @@ trait StonePlay extends Play:
 
 object StonePlay:
   def from(point: IntersectionPoint, is: IntersectionState): Option[StonePlay] =
-    import activitygo.IntersectionState.{White, Black}
+    import IntersectionState.{White, Black}
     is match
       case Black => Some(BlackPlay(point))
       case White => Some(WhitePlay(point))

@@ -1,6 +1,5 @@
 package activitygo
 
-import activitygo.IntersectionState.{Black, Empty, White}
 import org.specs2.mutable.Specification
 
 import scala.util.Random
@@ -8,6 +7,64 @@ import scala.util.Random
 class GoRulesSpec extends Specification with GoPlayUtils {
 
   private lazy val r = new Random()
+
+
+  "Finding a group" should {
+    "successfully find a group of two horizontal stones" in {
+      val state = GoState.fromString(
+        """··········
+          |··········
+          |··········
+          |····x·····
+          |··········
+          |··········
+          |··········
+          |··········
+          |··········
+          |··········""".stripMargin
+      )
+
+      val (_, group) = GoRules.findGroup(state, BlackPlay(IntersectionPoint(3, 3)))
+
+      group.length must be_==(2)
+      group must contain(BlackPlay(IntersectionPoint(3, 3)), BlackPlay(IntersectionPoint(4, 3)))
+    }
+    "successfully find a group of two vertical stones" in {
+      val state = GoState.fromString(
+        """··········
+          |··········
+          |··········
+          |····x·····
+          |··········
+          |··········
+          |··········
+          |··········
+          |··········
+          |··········""".stripMargin
+      )
+
+      val (_, group) = GoRules.findGroup(state, BlackPlay(IntersectionPoint(4, 4)))
+
+      group.length must be_==(2)
+      group must contain(BlackPlay(IntersectionPoint(4, 4)), BlackPlay(IntersectionPoint(4, 3)))
+    }
+    "successfully find a group covering multiple columns and rows" in {
+      val state = GoState.fromString(
+        """··········
+          |··xox·····
+          |·xoo··ooo·
+          |··xo··o···
+          |···ooo····
+          |·····ooooo
+          |·····o····
+          |····o·o···
+          |··········
+          |··········""".stripMargin, BlackPlay(IntersectionPoint(2, 1)) :: Nil
+      )
+      val (_, group) = GoRules.findGroup(state, WhitePlay(IntersectionPoint(4, 3)))
+      group.length must be_==(14)
+    }
+  }
 
   "Checking for invalid moves" should {
 
@@ -31,36 +88,6 @@ class GoRulesSpec extends Specification with GoPlayUtils {
       GoRules.isValid(game1, play.reverse) must beFalse
     }
 
-    "Finding a group" should {
-      "successfully find a group of two horizontal stones" in {
-        val state = GoState.fromString(
-          """··········
-            |··········
-            |··········
-            |····x·····
-            |··········
-            |··········
-            |··········
-            |··········
-            |··········
-            |··········""".stripMargin
-        )
-
-        val group = GoRules.findGroup(state, BlackPlay(IntersectionPoint(4, 3)))
-
-        group.length must be_==(2)
-
-        ko
-
-      }
-      "successfully find a group of two vertical stones" in {
-        ko
-      }
-      "successfully find a group covering multiple columns and rows" in {
-        ko
-      }
-    }
-
     "return false when immediately recapturing a ko" in {
       ko
     }
@@ -78,7 +105,7 @@ class GoRulesSpec extends Specification with GoPlayUtils {
           |··········
           |··········""".stripMargin
 
-      val state = GoState.fromString(board)
+      val state = GoState.fromString(board, BlackPlay(IntersectionPoint(1, 0)) :: Nil)
 
       println(state.toString)
 
@@ -98,7 +125,7 @@ class GoRulesSpec extends Specification with GoPlayUtils {
           |··········
           |··········""".stripMargin
 
-      val state = GoState.fromString(board)
+      val state = GoState.fromString(board, BlackPlay(IntersectionPoint(1, 0)) :: Nil)
 
       println(state.toString)
 
