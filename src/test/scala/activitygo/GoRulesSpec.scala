@@ -1,5 +1,6 @@
 package activitygo
 
+import activitygo.IntersectionState.{Black, Empty, White}
 import org.specs2.mutable.Specification
 
 import scala.util.Random
@@ -30,11 +31,41 @@ class GoRulesSpec extends Specification with GoPlayUtils {
       GoRules.isValid(game1, play.reverse) must beFalse
     }
 
+    "Finding a group" should {
+      "successfully find a group of two horizontal stones" in {
+        val state = GoState.fromString(
+          """··········
+            |··········
+            |··········
+            |····x·····
+            |··········
+            |··········
+            |··········
+            |··········
+            |··········
+            |··········""".stripMargin
+        )
+
+        val group = GoRules.findGroup(state, BlackPlay(IntersectionPoint(4, 3)))
+
+        group.length must be_==(2)
+
+        ko
+
+      }
+      "successfully find a group of two vertical stones" in {
+        ko
+      }
+      "successfully find a group covering multiple columns and rows" in {
+        ko
+      }
+    }
+
     "return false when immediately recapturing a ko" in {
       ko
     }
 
-    "return false when attempting group suicide" in {
+    "return true when attempting group suicide" in {
       val board =
         """·xxxxx····
           |xooooox···
@@ -49,7 +80,29 @@ class GoRulesSpec extends Specification with GoPlayUtils {
 
       val state = GoState.fromString(board)
 
+      println(state.toString)
+
       GoRules.isSuicide(state, WhitePlay(IntersectionPoint(2, 2))) must beTrue
+    }
+
+    "return false when not quite attempting group suicide because there is a liberty" in {
+      val board =
+        """·xxxxx····
+          |xooooox···
+          |xo·ooo·x··
+          |xooooox···
+          |·xxxxx····
+          |··········
+          |··········
+          |··········
+          |··········
+          |··········""".stripMargin
+
+      val state = GoState.fromString(board)
+
+      println(state.toString)
+
+      GoRules.isSuicide(state, WhitePlay(IntersectionPoint(2, 2))) must beFalse
     }
 
     "return false when a stone would be in a captured state" in {

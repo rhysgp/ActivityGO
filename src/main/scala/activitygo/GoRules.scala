@@ -66,6 +66,38 @@ object GoRules:
     val bottom = if point.y == state.board.length - 1 then OutsideBoard else state.board(point.x)(point.y + 1)
     val left = if point.x == 0 then OutsideBoard else state.board(point.x - 1)(point.y)
     AdjacentStates(IntersectionPoint(point.x, point.y), top, right, bottom, left)
+  end adjacentStates
+
+
+  /**
+   * Find the group the play would be a part of. The play cannot be a pass.
+   * That space must be empty.
+   */
+  def findGroup(state: GoState, play: StonePlay): List[StonePlay] =
+    if play.isPass then throw IllegalArgumentException("The play cannot be a pass")
+    if state.at(play.intersection) != Empty then throw IllegalArgumentException("The intersection must be empty")
+
+    val newState = state.play(play)
+
+    // collect the stones linked to that space that are of the same colour:
+    val intersectionsInGroup = mutable.Set[StonePlay](play)
+    var done = false
+    while (!done)
+      val startCount = intersectionsInGroup.size
+      adjacentStates(newState, play.intersection)
+        .toList
+        .filter(_.toIntersectionState == play.toIntersectionState)
+        .foreach(intersectionsInGroup.addOne)
+      val endCount = intersectionsInGroup.size
+      done = endCount == startCount
+    end while
+
+    println(s"Size in group: ${intersectionsInGroup.size}")
+
+    intersectionsInGroup.toList
+
+  end findGroup
+
 
 
   /**
@@ -73,18 +105,9 @@ object GoRules:
    * If there are no adjacent spaces that are empty, that's suicide!
    */
   def isSuicide(state: GoState, play: StonePlay): Boolean =
-    // collect the stones linked to that space that are of the same colour:
-    val intersectionsInGroup = mutable.Set[StonePlay](play)
-    var done = false
-    while (!done)
-      val startCount = intersectionsInGroup.size
-      adjacentStates(state, play.intersection)
-        .toList
-        .filter(_.toIntersectionState == play.toIntersectionState)
-        .foreach(intersectionsInGroup.addOne)
-      val endCount = intersectionsInGroup.size
-      done = endCount == startCount
-    end while
+    val intersectionsInGroup = findGroup(state, play)
+
+    println(s"Size in group: ${intersectionsInGroup.size}")
 
     intersectionsInGroup
       .map(sp => adjacentStates(state, sp.intersection))

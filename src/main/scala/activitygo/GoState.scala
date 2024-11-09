@@ -10,14 +10,35 @@ case class GoState(
   board: Array[Array[IntersectionState]],
   captures: (CountOfBlack, CountOfWhite),
   plays: Seq[Play]
-) {
+):
 
   def play(p: Play): GoState = {
-    if (GoRules.isValid(this, p)) {
+    if GoRules.isValid(this, p) then
       GoRules.applyPlay(this, p)
-    } else throw new InvalidPlayException()
+    else throw new InvalidPlayException()
   }
-}
+
+  def at(intersectionPoint: IntersectionPoint): IntersectionState =
+    board(intersectionPoint.x)(intersectionPoint.y)
+  end at
+
+  override def toString: String =
+    import IntersectionState.{Black, White, Empty}
+    val sb = new StringBuilder()
+    board.foreach(lines => {
+      lines.foreach {
+        case Empty => sb.append('·')
+        case Black => sb.append('x')
+        case White => sb.append('o')
+        case _ => sb.append('?')
+      }
+      sb.append('\n')
+    })
+    sb.toString()
+  end toString
+
+end GoState
+
 
 object GoState:
   def initialise(size: Int): GoState =
@@ -30,9 +51,6 @@ object GoState:
   def fromString(s: String): GoState =
     val lines = s.split("\n").toList
     val size = lines.length
-
-    println(s"number of lines: $size")
-    lines.foreach(l => println(s"len = ${l.length}"))
 
     if (!lines.forall(_.length == size)) throw new Exception("Board is not complete")
     if (!lines.forall(line => line.forall(ch => ch == '·' || ch == 'o' || ch == 'x'))) throw new Exception("Invalid character(s) in board")
@@ -74,6 +92,7 @@ case class IntersectionPoint(x: Int, y: Int):
 
 trait Play:
   def toIntersectionState: IntersectionState
+  def isPass: Boolean
 
 trait StonePlay extends Play:
   def intersection: IntersectionPoint
@@ -91,13 +110,17 @@ end StonePlay
 
 case class BlackPlay(intersection: IntersectionPoint) extends StonePlay:
   def toIntersectionState: IntersectionState = IntersectionState.Black
+  def isPass: Boolean = false
 
 case class WhitePlay(intersection: IntersectionPoint) extends StonePlay:
   def toIntersectionState: IntersectionState = IntersectionState.White
+  def isPass: Boolean = false
 
 case object BlackPass extends Play:
   def toIntersectionState: IntersectionState = IntersectionState.White
+  def isPass: Boolean = true
 
 case object WhitePass extends Play:
   def toIntersectionState: IntersectionState = IntersectionState.White
+  def isPass: Boolean = true
 
