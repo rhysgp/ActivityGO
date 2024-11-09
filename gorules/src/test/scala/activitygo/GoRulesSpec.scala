@@ -92,7 +92,7 @@ class GoRulesSpec extends Specification with GoPlayUtils {
       ko
     }
 
-    "return true when attempting group suicide" in {
+    "return is suicide when attempting group suicide" in {
       val board =
         """·xxxxx····
           |xooooox···
@@ -107,12 +107,10 @@ class GoRulesSpec extends Specification with GoPlayUtils {
 
       val state = GoState.fromString(board, BlackPlay(IntersectionPoint(1, 0)) :: Nil)
 
-      println(state.toString)
-
       GoRules.isSuicide(state, WhitePlay(IntersectionPoint(2, 2))) must beTrue
     }
 
-    "return false when not quite attempting group suicide because there is a liberty" in {
+    "return not suicide when not quite attempting group suicide because there is a liberty" in {
       val board =
         """·xxxxx····
           |xooooox···
@@ -127,14 +125,43 @@ class GoRulesSpec extends Specification with GoPlayUtils {
 
       val state = GoState.fromString(board, BlackPlay(IntersectionPoint(1, 0)) :: Nil)
 
-      println(state.toString)
-
       GoRules.isSuicide(state, WhitePlay(IntersectionPoint(2, 2))) must beFalse
     }
 
-    "return false when a stone would be in a captured state" in {
-      // this kind of the same as above, but for a single stone
-      ko
+    "return is suicide when a stone would be in a captured state" in {
+      val board =
+        """··········
+          |···o······
+          |··o·o·····
+          |···o······
+          |··········
+          |··········
+          |··········
+          |··········
+          |··········
+          |··········""".stripMargin
+
+      val state = GoState.fromString(board, Nil)
+
+      GoRules.isSuicide(state, BlackPlay(IntersectionPoint(3, 2))) must beTrue
+    }
+
+    "return not suicide when a stone would not be in a captured state" in {
+      val board =
+        """··········
+          |···o······
+          |··o·······
+          |···o······
+          |··········
+          |··········
+          |··········
+          |··········
+          |··········
+          |··········""".stripMargin
+
+      val state = GoState.fromString(board, Nil)
+
+      GoRules.isSuicide(state, BlackPlay(IntersectionPoint(3, 2))) must beFalse
     }
   }
 }
